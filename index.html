@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+<body>
+  <button onclick="recorderStart()">start</button>
+  <button onclick="stop()">stop</button>
+  <button onclick="getData()">getData</button>
+  <button onclick="getDevices()">getDevices</button>
+  <select id="device-select"></select>
+  <canvas id="canvas" width="200px" height="200px"></canvas>
+  <script src="./recorder.js"></script>
+  <script>
+    const recorder = new Recorder()
+
+    let drawRecordId = null
+
+    getDevices()
+
+    window.addEventListener('devicechange', (event) => {
+      getDevices()
+    })
+    async function recorderStart() {
+      const select = document.getElementById('device-select') 
+      let setting = {}
+      if (select.value) {
+        setting = {
+          deviceId: {
+            exact: select.value
+          }
+        }
+      }
+      await recorder.start(setting)
+      drawRecord()
+      getDevices()
+    }
+    function getData() {
+      const data = recorder.getWholeData()
+      const uint8Arr = new Uint8Array(data)
+      const arrayBuffer = uint8Arr.buffer
+      const dataView = new DataView(arrayBuffer)
+      console.log(dataView)
+    }
+    function stop() {
+      recorder.stop()
+    }
+
+    // 获取麦克风设备列表
+    function getDevices() {
+      const selectDom = document.getElementById('device-select')
+      const value = selectDom.value
+      recorder.getMicDevices().then(res => {
+        selectDom.innerHTML = ''
+        res.forEach(device => {
+          const option = document.createElement('option')
+          option.value = device.deviceId
+          option.text = device.label
+          selectDom.appendChild(option)
+          if (device.deviceId === value) {
+            selectDom.value = value
+          }
+        })
+      })
+    }
+
+    // 画图
+    const oCanvas = document.getElementById('canvas')
+    const ctx = oCanvas.getContext('2d')
+    function drawRecord() {
+      // 用requestAnimationFrame稳定60fps绘制
+      drawRecordId = requestAnimationFrame(drawRecord)
+  
+      // 实时获取音频大小数据
+      let dataArray = recorder.getRecordAnalyseData()
+      let bufferLength = dataArray.length
+  
+      // 填充背景色
+      ctx.fillStyle = '#fff'
+      ctx.fillRect(0, 0, oCanvas.width, oCanvas.height)
+      
+      // 设定波形绘制颜色
+      ctx.lineWidth = 2
+      ctx.strokeStyle = '#333'
+      
+      ctx.beginPath()
+      
+      var sliceWidth = oCanvas.width * 1.0 / bufferLength, // 一个点占多少位置，共有bufferLength个点要绘制
+          x = 0         // 绘制点的x轴位置
+  
+      for (var i = 0; i < bufferLength; i++) {
+          var v = dataArray[i] / 128.0
+          var y = v * oCanvas.height / 2
+      
+          if (i === 0) {
+              // 第一个点
+              ctx.moveTo(x, y)
+          } else {
+              // 剩余的点
+              ctx.lineTo(x, y)
+          }
+          // 依次平移，绘制所有点
+          x += sliceWidth
+      }
+      
+      ctx.lineTo(oCanvas.width, oCanvas.height / 2)
+      ctx.stroke()
+    }
+  </script>
+</body>
+</html>

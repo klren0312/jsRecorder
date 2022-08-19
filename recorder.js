@@ -9,11 +9,8 @@ class Recorder {
   transWorker = null
   audioInput = null // 音频源节点
   prevDomainData = null // 缓存之前的分析数据
-  onlyRealtime = false // 只用于实时获取音频流, 不进行存储
   audioOffset = 0 // 用于记录之前获取音频的的位置
-  constructor(config = {}) {
-    const { onlyRealtime = false } = config
-    this.onlyRealtime = onlyRealtime
+  constructor() {
     this.hasPermission = false
     try {
       this.audioContext = new (window.AudioContext || window.webkitAudioContext)()
@@ -64,7 +61,7 @@ class Recorder {
       return
     }
 
-    this.clearCache()
+    this.clearCache(true)
     this.initRecorder()
     this.isRecording = true
     if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
@@ -164,13 +161,14 @@ class Recorder {
   /**
    * 清除缓存
    */
-  clearCache() {
-    console.log('clear')
+  clearCache(force = false) {
+    if (force) {
+      this.isRecording = false
+      this.audioInput = null
+      this.isPause = false
+    }
     this.duration = 0
-    this.isPause = false
-    this.isRecording = false
     this.audioData = []
-    this.audioInput = null
     this.audioOffset = 0
   }
 

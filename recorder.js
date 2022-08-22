@@ -51,6 +51,10 @@ class Recorder {
       const lData = e.inputBuffer.getChannelData(0)
       const val = Math.max.apply(Math, lData) * 100
       this.duration += 4096 / 16000
+      this.onprogress && this.onprogress({
+        duration: this.duration,
+        val: val,
+      })
       // 把数据送给webworker处理
       this.transWorker.postMessage(lData)
     }

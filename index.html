@@ -63,18 +63,14 @@
 
     function realtimePushData() {
       interval = setInterval(() => {
-        getData()
+        const data = recorder.getWholeData()
+        console.log(data)
+        recorder.clearCache()
+        // const uint8Arr = new Uint8Array(data)
+        // const arrayBuffer = uint8Arr.buffer
+        // const dataView = new DataView(arrayBuffer)
+        // console.log(dataView)
       }, 200)
-    }
-
-    function getData() {
-      const data = recorder.getWholeData()
-      console.log(data)
-      recorder.clearCache()
-      // const uint8Arr = new Uint8Array(data)
-      // const arrayBuffer = uint8Arr.buffer
-      // const dataView = new DataView(arrayBuffer)
-      // console.log(dataView)
     }
     function stop() {
       recorder.stop()

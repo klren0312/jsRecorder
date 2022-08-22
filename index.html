@@ -36,24 +36,22 @@
 
     async function recorderStart(changeDeviceId) {
       let setting = {}
-      if (changeDeviceId) {
+      if (changeDeviceId || recorder.currentMicDeviceId) {
         setting = {
-          deviceId: {
-            exact: changeDeviceId
-          }
+          deviceId: changeDeviceId || recorder.currentMicDeviceId
         }
       } else {
         const select = document.getElementById('device-select') 
         if (select.value) {
           setting = {
-            deviceId: {
-              exact: select.value
-            }
+            deviceId: select.value
           }
         }
       }
       try {
-        await recorder.start(setting) 
+        await recorder.start(setting)
+        recorder.getMicDevices()
+        selectDom.value = recorder.currentMicDeviceId
       } catch (error) {
         console.error(error)
       }

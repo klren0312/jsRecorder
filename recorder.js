@@ -10,6 +10,7 @@ class Recorder {
   audioInput = null // 音频源节点
   prevDomainData = null // 缓存之前的分析数据
   audioOffset = 0 // 用于记录之前获取音频的的位置
+  currentMicDeviceId = ''
   constructor() {
     this.hasPermission = false
     try {
@@ -150,16 +151,30 @@ class Recorder {
   getMicDevices() {
     return navigator.mediaDevices.enumerateDevices().then(res => {
       const devicesList = []
+      let communicationsDevice = null
+      let defaultDevice = null
       res.forEach((device, i) => {
         if (device.kind === 'audioinput') {
-          const info = JSON.parse(JSON.stringify(device))
-          devicesList.push({
-            ...info,
-            label: info.label || '麦克风-' + i
-          })
-          
+          if (device.deviceId !== 'default' && device.deviceId !== 'communications') {
+            const info = JSON.parse(JSON.stringify(device))
+            devicesList.push({
+              ...info,
+              label: info.label || '麦克风-' + i
+            })
+          }
+          if (device.deviceId === 'communications') {
+            communicationsDevice = device
+          }
+          if (device.deviceId === 'default') {
+            defaultDevice = device
+          }
         }
       })
+      if (communicationsDevice) {
+        this.currentMicDeviceId = devicesList.find(device => device.groupId === communicationsDevice.groupId).deviceId
+      } else if (defaultDevice) {
+        this.currentMicDeviceId = devicesList.find(device => device.groupId === defaultDevice.groupId).deviceId
+      }
       return devicesList
     })
   }

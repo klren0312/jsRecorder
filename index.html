@@ -20,22 +20,43 @@
     let drawRecordId = null
     let interval = null
 
+    let isRecording = false
+
+    const selectDom = document.getElementById('device-select')
+    selectDom.addEventListener('change', (e) => {
+      if (recorder.isRecording) {
+        recorderStart(e.target.value)
+      }
+    })
+
     getDevices()
     window.addEventListener('devicechange', (event) => {
       getDevices()
     })
 
-    async function recorderStart() {
-      const select = document.getElementById('device-select') 
+    async function recorderStart(changeDeviceId) {
       let setting = {}
-      if (select.value) {
+      if (changeDeviceId) {
         setting = {
           deviceId: {
-            exact: select.value
+            exact: changeDeviceId
+          }
+        }
+      } else {
+        const select = document.getElementById('device-select') 
+        if (select.value) {
+          setting = {
+            deviceId: {
+              exact: select.value
+            }
           }
         }
       }
-      await recorder.start(setting)
+      try {
+        await recorder.start(setting) 
+      } catch (error) {
+        console.error(error)
+      }
       drawRecord()
       getDevices()
     }
@@ -62,10 +83,13 @@
 
     // 获取麦克风设备列表
     function getDevices() {
-      const selectDom = document.getElementById('device-select')
       const value = selectDom.value
       recorder.getMicDevices().then(res => {
         selectDom.innerHTML = ''
+        res.push({
+          deviceId: '11111111111',
+          label: 'test'
+        })
         res.forEach(device => {
           const option = document.createElement('option')
           option.value = device.deviceId

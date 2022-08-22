@@ -80,7 +80,8 @@ class Recorder {
           this.recorder.connect(this.audioContext.destination)
         })
         .catch(e => {
-          this.distory()
+          this.destroy()
+          throw e
         })
     } else {
       if (navigator.userAgent.toLowerCase().match(/chrome/) && location.origin.indexOf('https://') < 0) {
@@ -173,6 +174,7 @@ class Recorder {
   }
 
   destroy() {
+    this.clearCache(true)
     this.stopStream()
     this.transWorker && this.transWorker.terminate()
   }

@@ -29,6 +29,14 @@ class Recorder {
     navigator.mediaDevices.getUserMedia({audio:true}).then(stream => {
       stream.getTracks().forEach(track => track.stop())
     })
+    // 监听设备变化, 重新获取麦克风设备列表, 并触发回调
+    window.addEventListener('devicechange', async () => {
+      const devices = await this.getMicDevices()
+      this.onMicChange({
+        devices,
+        currentMicDeviceId: this.currentMicDeviceId
+      })
+    })
   }
   initRecorder() {
     if (this.audioContext) {

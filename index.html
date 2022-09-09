@@ -15,26 +15,30 @@
   <canvas id="canvas" width="200px" height="200px"></canvas>
   <script src="./recorder.js"></script>
   <script>
-    const recorder = new Recorder()
 
     let drawRecordId = null
     let interval = null
+    let recorder = null
+    let selectDom = null
 
-    let isRecording = false
 
-    const selectDom = document.getElementById('device-select')
-    selectDom.addEventListener('change', (e) => {
-      if (recorder.isRecording) {
-        recorderStart(e.target.value)
-      }
-    })
-
-    getDevices()
-    window.addEventListener('devicechange', (event) => {
+    function initRecorder() {
+      recorder = new Recorder()
+      selectDom = document.getElementById('device-select')
+      selectDom.addEventListener('change', (e) => {
+        if (recorder.isRecording) {
+          recorderStart(e.target.value)
+        }
+      })
       getDevices()
-    })
-
+      window.addEventListener('devicechange', (event) => {
+        getDevices()
+      })
+    }
     async function recorderStart(changeDeviceId) {
+      if (!recorder) {
+        initRecorder()
+      }
       let setting = {}
       if (changeDeviceId || recorder.currentMicDeviceId) {
         setting = {
@@ -61,14 +65,10 @@
 
     function realtimePushData() {
       interval = setInterval(() => {
-        const data = recorder.getWholeData()
-        console.log(data)
-        recorder.clearCache()
-        // const uint8Arr = new Uint8Array(data)
-        // const arrayBuffer = uint8Arr.buffer
-        // const dataView = new DataView(arrayBuffer)
-        // console.log(dataView)
-      }, 200)
+        const data = recorder.getSpliceData(1280)
+        const arrayBuffer = new Uint8Array(data).buffer
+        console.log(arrayBuffer)
+      }, 40)
     }
     function stop() {
       recorder.stop()

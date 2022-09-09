@@ -44,11 +44,16 @@ class Recorder {
     }
     this.transWorker = new Worker('./transcode.worker.js')
     this.transWorker.onmessage = (event) => {
+      console.log(this.audioData.length)
       this.audioData.push(...event.data)
     }
+    // 录音分析节点
     this.analyser = this.audioContext.createAnalyser()
+    // 表示存储频域的大小
     this.analyser.fftSize = 2048
-    const createScript = this.audioContext.createScriptProcessor || this.audioContext.createJavaScriptNode
+    // 第一个参数表示收集采样的大小，采集完这么多后会触发 onaudioprocess 接口一次，该值一般为1024,2048,4096等，一般就设置为4096
+      // 第二，三个参数分别是输入的声道数和输出的声道数，保持一致即可。
+    const createScript = this.audioContext.createScriptProcessor
     this.recorder = createScript.apply(this.audioContext, [4096, 1, 1])
     this.recorder.onaudioprocess = e => {
       if (!this.isRecording || this.isPause) {
@@ -127,10 +132,21 @@ class Recorder {
 
   /**
    * 获取当前的全部音频数据
-   * @returns [DataView]
+   * @returns array
    */
   getWholeData() {
     return this.audioData
+  }
+
+  /**
+   * 获取截取的音频
+   * @params {number} number
+   * @returns array
+   */
+  getSpliceData(number) {
+    const data = this.audioData.splice(0, number)
+    this.audioOffset = 0
+    return data
   }
 
   /**
